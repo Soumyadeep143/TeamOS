@@ -12,11 +12,18 @@ class TaskService:
         completed = sum(1 for item in task_in.checklist if item.completed)
         progress = int((completed / total) * 100) if total > 0 else 0
         
+        if progress == 100:
+            status = "completed"
+        elif progress > 0:
+            status = "in-progress"
+        else:
+            status = "todo"
+            
         new_task = {
             "task_id": task_id,
             "title": task_in.title,
             "assignee": task_in.assignee,
-            "status": "todo" if progress < 100 else "completed",
+            "status": status,
             "progress": progress,
             "checklist": [{"title": item.title, "completed": item.completed} for item in task_in.checklist]
         }

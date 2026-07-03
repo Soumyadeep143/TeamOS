@@ -4,5 +4,8 @@
     "jsx": "react-jsx",
     "outDir": "./dist"
   },
-  "include": ["src/**/*"]
+  "include": [
+    ".plasmo/index.d.ts",
+    "src/**/*"
+  ]
 }
