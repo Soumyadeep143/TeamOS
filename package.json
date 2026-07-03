@@ -1,0 +1,20 @@
+{
+    "name": "teamos",
+    "private": true,
+    "version": "0.1.0",
+    "workspaces": [
+        "apps/extension",
+        "apps/dashboard",
+        "packages/*"
+    ],
+    "scripts": {
+        "dev:extension": "pnpm --dir apps/extension dev",
+        "dev:dashboard": "pnpm --dir apps/dashboard dev",
+        "build": "pnpm --recursive build",
+        "lint": "pnpm --recursive lint"
+    },
+    "devDependencies": {
+        "typescript": "^5.6.2",
+        "prettier": "^3.0.0"
+    }
+}

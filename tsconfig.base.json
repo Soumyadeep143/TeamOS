@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@teamos/ui": ["packages/ui/src"],
+      "@teamos/types": ["packages/types/src"],
+      "@teamos/utils": ["packages/utils/src"],
+      "@teamos/config": ["packages/config/src"],
+      "@teamos/sdk": ["packages/sdk/src"],
+      "@teamos/prompts": ["packages/prompts/src"]
+    }
+  }
+}

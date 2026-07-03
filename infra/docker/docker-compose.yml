@@ -1,0 +1,31 @@
+version: '3.9'
+services:
+  backend:
+    build: ../../apps/backend
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    volumes:
+      - ../../apps/backend:/app
+    ports:
+      - '8000:8000'
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/teamos
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+  dashboard:
+    build: ../../apps/dashboard
+    ports:
+      - '4173:4173'
+  redis:
+    image: redis:7
+    ports:
+      - '6379:6379'
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: teamos
+    ports:
+      - '5432:5432'
