@@ -4,7 +4,7 @@ from app.core.store import db
 from app.schemas.task import TaskCreate, TaskUpdate
 
 class TaskService:
-    def create_task(self, task_in: TaskCreate) -> Dict[str, Any]:
+    def create_task(self, task_in: TaskCreate, workspace_id: str = "demo-workspace-123") -> Dict[str, Any]:
         task_id = f"task-{uuid.uuid4().hex[:8]}"
         
         # Calculate initial progress
@@ -21,6 +21,7 @@ class TaskService:
             
         new_task = {
             "task_id": task_id,
+            "workspace_id": workspace_id,
             "title": task_in.title,
             "assignee": task_in.assignee,
             "status": status,
@@ -28,13 +29,27 @@ class TaskService:
             "checklist": [{"title": item.title, "completed": item.completed} for item in task_in.checklist]
         }
         db.tasks[task_id] = new_task
+        
+        # Log event to timeline
+        try:
+            from app.services.timeline_service import TimelineService
+            assignee_name = db.members.get(task_in.assignee, {}).get("display_name", "Unassigned") if task_in.assignee else "Unassigned"
+            TimelineService().log_event(
+                event_type="task_update",
+                message=f"created task: '{task_in.title}' (Assigned to: {assignee_name})",
+                user_id=task_in.assignee or "system",
+                details={"task_id": task_id, "status": status, "progress": progress}
+            )
+        except Exception:
+            pass
+            
         return new_task
 
     def get_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         return db.tasks.get(task_id)
 
-    def list_tasks(self) -> List[Dict[str, Any]]:
-        return list(db.tasks.values())
+    def list_tasks(self, workspace_id: str = "demo-workspace-123") -> List[Dict[str, Any]]:
+        return [t for t in db.tasks.values() if t.get("workspace_id") == workspace_id]
 
     def update_task(self, task_id: str, task_in: TaskUpdate) -> Optional[Dict[str, Any]]:
         if task_id not in db.tasks:
@@ -68,4 +83,18 @@ class TaskService:
             else:
                 task["status"] = "todo"
                 
+        # Log event to timeline
+        try:
+            from app.services.timeline_service import TimelineService
+            assignee_id = task.get("assignee")
+            TimelineService().log_event(
+                event_type="task_update",
+                message=f"updated task: '{task['title']}' to {task['status']} ({task['progress']}% done)",
+                user_id=assignee_id or "system",
+                details={"task_id": task_id, "status": task["status"], "progress": task["progress"]}
+            )
+        except Exception:
+            pass
+            
         return task
+

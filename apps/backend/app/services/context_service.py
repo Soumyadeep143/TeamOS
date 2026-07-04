@@ -5,7 +5,7 @@ from app.core.store import db
 from app.schemas.context import ContextShare
 
 class ContextService:
-    def share_context(self, context_in: ContextShare, user_id: str = "user-1") -> Dict[str, Any]:
+    def share_context(self, context_in: ContextShare, user_id: str = "user-1", workspace_id: str = "demo-workspace-123") -> Dict[str, Any]:
         context_id = f"ctx-{uuid.uuid4().hex[:8]}"
         
         # Simple AI Summary generation logic simulator
@@ -20,6 +20,7 @@ class ContextService:
             
         new_ctx = {
             "context_id": context_id,
+            "workspace_id": workspace_id,
             "type": context_in.type,
             "title": context_in.title,
             "url": context_in.url,
@@ -34,7 +35,7 @@ class ContextService:
     def get_context(self, context_id: str) -> Optional[Dict[str, Any]]:
         return db.contexts.get(context_id)
 
-    def list_feed(self) -> List[Dict[str, Any]]:
+    def list_feed(self, workspace_id: str = "demo-workspace-123") -> List[Dict[str, Any]]:
         # Return feed sorted by date descending (newest first)
-        all_items = list(db.contexts.values())
+        all_items = [c for c in db.contexts.values() if c.get("workspace_id") == workspace_id]
         return sorted(all_items, key=lambda x: x["created_at"], reverse=True)

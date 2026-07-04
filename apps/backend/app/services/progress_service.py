@@ -2,13 +2,13 @@ from typing import Dict, Any
 from app.core.store import db
 
 class ProgressService:
-    def get_progress_summary(self) -> Dict[str, Any]:
+    def get_progress_summary(self, workspace_id: str = "demo-workspace-123") -> Dict[str, Any]:
         """
-        Aggregates sprint-level progress percentage based on all checklist items across all tasks (FR-33, FR-34).
+        Aggregates sprint-level progress percentage based on all checklist items across all tasks (FR-33, FR-34) for a workspace.
         """
-        all_tasks = list(db.tasks.values())
+        all_tasks = [t for t in db.tasks.values() if t.get("workspace_id") == workspace_id]
         if not all_tasks:
-            return {"sprint_progress": 0, "total_tasks": 0, "completed_tasks": 0}
+            return {"sprint_progress": 0, "total_tasks": 0, "completed_tasks": 0, "individual_progress": {}}
             
         total_checklist_items = 0
         completed_checklist_items = 0
@@ -28,10 +28,16 @@ class ProgressService:
                     
         sprint_progress = int((completed_checklist_items / total_checklist_items) * 100) if total_checklist_items > 0 else 0
         
-        # Calculate individual member progress contributions
+        # Calculate individual member progress contributions for members of this workspace
         member_progress = {}
-        for m_id, member in db.members.items():
-            # Get tasks assigned to this member
+        ws = db.workspaces.get(workspace_id, {})
+        ws_members = ws.get("members", [])
+        
+        for m_id in ws_members:
+            member = db.members.get(m_id)
+            if not member:
+                continue
+            # Get tasks assigned to this member within this workspace
             member_tasks = [t for t in all_tasks if t["assignee"] == m_id]
             if not member_tasks:
                 member_progress[member["display_name"]] = 0

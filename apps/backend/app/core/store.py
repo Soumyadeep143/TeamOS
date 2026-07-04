@@ -9,6 +9,7 @@ class MemoryStore:
         self.members: Dict[str, Dict[str, Any]] = {}
         self.tasks: Dict[str, Dict[str, Any]] = {}
         self.contexts: Dict[str, Dict[str, Any]] = {}
+        self.events: List[Dict[str, Any]] = []
         
         # Initialize with some default demo data so the app isn't empty out-of-the-box
         self._init_demo_data()
@@ -51,6 +52,7 @@ class MemoryStore:
         task1_id = "task-1"
         self.tasks[task1_id] = {
             "task_id": task1_id,
+            "workspace_id": "demo-workspace-123",
             "title": "Build FastAPI backend endpoints",
             "assignee": "user-1",
             "status": "in-progress",
@@ -67,6 +69,7 @@ class MemoryStore:
         ctx1_id = "ctx-1"
         self.contexts[ctx1_id] = {
             "context_id": ctx1_id,
+            "workspace_id": "demo-workspace-123",
             "type": "page",
             "title": "Browser Use Competitor Analysis",
             "url": "https://github.com/browser-use/browser-use",
@@ -74,6 +77,29 @@ class MemoryStore:
             "created_by": "user-1",
             "created_at": datetime.now()
         }
+        
+        # Demo timeline events
+        self.events = [
+            {
+                "event_id": "event-1",
+                "timestamp": datetime.now(),
+                "user": "Soumyadeep",
+                "user_id": "user-1",
+                "type": "workspace_create",
+                "message": "created workspace: TeamOS Demo Workspace",
+                "details": {}
+            },
+            {
+                "event_id": "event-2",
+                "timestamp": datetime.now(),
+                "user": "John Doe",
+                "user_id": "user-2",
+                "type": "member_join",
+                "message": "joined the workspace",
+                "details": {}
+            }
+        ]
 
 # Global database instance
 db = MemoryStore()
+

@@ -1,9 +1,10 @@
 import logging
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List, Optional
 from app.schemas.context import ContextShare, ContextResponse
 from app.services.context_service import ContextService
 from app.services.duplicate_service import DuplicateService
+from app.core.auth import get_current_user, verify_workspace_access
 
 logger = logging.getLogger("teamos.api.context")
 logger.setLevel(logging.INFO)
@@ -13,12 +14,17 @@ context_service = ContextService()
 duplicate_service = DuplicateService()
 
 @router.post("/share", response_model=ContextResponse, status_code=status.HTTP_201_CREATED)
-def share_context(context_in: ContextShare):
+def share_context(
+    context_in: ContextShare,
+    workspace_id: str = "demo-workspace-123",
+    current_user: str = Depends(get_current_user)
+):
     """
     Shares a webpage, highlight, or document with the team.
     Triggers automatic duplicate checks for documents and pages.
     """
-    logger.info("Sharing context item: title=%s, type=%s", context_in.title, context_in.type)
+    logger.info("Sharing context item for workspace %s: title=%s, type=%s", workspace_id, context_in.title, context_in.type)
+    verify_workspace_access(workspace_id, current_user)
     try:
         # Pre-check for duplicate if type is page or document
         if context_in.type in ["document", "page"] and context_in.text_content:
@@ -31,10 +37,8 @@ def share_context(context_in: ContextShare):
                     dup_result["matched_title"],
                     dup_result["matched_context_id"]
                 )
-                # Note: We don't block the request, we log it and allow sharing, 
-                # but could return it in a header or meta. For this MVP, we proceed with creation.
 
-        shared_item = context_service.share_context(context_in, user_id="user-1")
+        shared_item = context_service.share_context(context_in, user_id=current_user, workspace_id=workspace_id)
         logger.info("Context item shared successfully: id=%s", shared_item["context_id"])
         return shared_item
     except Exception as e:
@@ -45,13 +49,17 @@ def share_context(context_in: ContextShare):
         )
 
 @router.get("/feed", response_model=List[ContextResponse])
-def get_context_feed():
+def get_context_feed(
+    workspace_id: str = "demo-workspace-123",
+    current_user: str = Depends(get_current_user)
+):
     """
     Returns the chronological feed of shared context.
     """
-    logger.info("Fetching context activity feed")
+    logger.info("Fetching context activity feed for workspace %s", workspace_id)
+    verify_workspace_access(workspace_id, current_user)
     try:
-        return context_service.list_feed()
+        return context_service.list_feed(workspace_id)
     except Exception as e:
         logger.exception("Failed to retrieve context feed")
         raise HTTPException(

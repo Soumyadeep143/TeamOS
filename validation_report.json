@@ -1,0 +1,674 @@
+{
+  "summary": {
+    "total": 83,
+    "passed": 80,
+    "failed": 3,
+    "pass_rate_pct": 96.4
+  },
+  "results": [
+    {
+      "phase": "CONTRACT",
+      "name": "GET / health",
+      "passed": true,
+      "evidence": "GET / \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.315069"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET / response schema",
+      "passed": true,
+      "evidence": "status=online",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.315069"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /member/ no-auth",
+      "passed": false,
+      "evidence": "GET /member/ \u2192 HTTP 200",
+      "detail": "Expected 401, got 200: [{\"user_id\":\"user-1\",\"display_name\":\"Soumyadeep\",\"status\":\"online\",\"current_activity\":\"Researching Browser Use\",\"availability\":[{\"day\":\"Monday\",\"start_time\":\"18:00\",\"end_time\":\"23:00\"}],\"progress\":78}",
+      "ts": "2026-07-03T16:33:56.329894"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /member/ bad-auth",
+      "passed": true,
+      "evidence": "GET /member/ \u2192 HTTP 401",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.349030"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /member/ auth",
+      "passed": true,
+      "evidence": "GET /member/ \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.368115"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /member/ is list",
+      "passed": true,
+      "evidence": "type=list len=2",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.368115"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "POST /workspace/create",
+      "passed": true,
+      "evidence": "POST /workspace/create \u2192 HTTP 201",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.393668"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "POST /workspace/create returns workspace_id",
+      "passed": true,
+      "evidence": "ws_id=ws-41ed167b",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.393668"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /workspace/{id}",
+      "passed": true,
+      "evidence": "GET /workspace/ws-41ed167b \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.412861"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /workspace/missing \u2192 404",
+      "passed": true,
+      "evidence": "GET /workspace/nonexistent-id-xyz \u2192 HTTP 404",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.432916"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /workspace/{id}/members",
+      "passed": true,
+      "evidence": "GET /workspace/ws-41ed167b/members \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.451581"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "POST /task/ create",
+      "passed": true,
+      "evidence": "POST /task/?workspace_id=ws-41ed167b \u2192 HTTP 201",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.469258"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "POST /task/ returns task_id",
+      "passed": true,
+      "evidence": "task_id=task-03ac82c3",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.469258"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /task/ list",
+      "passed": true,
+      "evidence": "GET /task/?workspace_id=ws-41ed167b \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.487578"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "PATCH /task/{id} update",
+      "passed": true,
+      "evidence": "PATCH /task/task-03ac82c3 \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.509249"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "PATCH /task/{id} reassign",
+      "passed": true,
+      "evidence": "PATCH /task/task-03ac82c3 \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.527465"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "PATCH /task/{id} response has task_id",
+      "passed": true,
+      "evidence": "{\"task_id\":\"task-03ac82c3\",\"title\":\"Contract Task\",\"assignee\":\"user-2\",\"status\":\"completed\",\"progres",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.527465"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "POST /context/share",
+      "passed": true,
+      "evidence": "POST /context/share?workspace_id=ws-41ed167b \u2192 HTTP 201",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.545539"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "POST /context/share returns context_id",
+      "passed": true,
+      "evidence": "{\"context_id\":\"ctx-cde77c3c\",\"type\":\"page\",\"title\":\"Contract Context\",\"url\":\"http://example.com\",\"su",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.545539"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /context/feed",
+      "passed": true,
+      "evidence": "GET /context/feed?workspace_id=ws-41ed167b \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.565235"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /progress/",
+      "passed": true,
+      "evidence": "GET /progress/?workspace_id=ws-41ed167b \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.588572"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /progress/ schema",
+      "passed": true,
+      "evidence": "GET /progress/?workspace_id=ws-41ed167b \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.606690"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /progress/ has sprint_progress",
+      "passed": true,
+      "evidence": "{'sprint_progress': 100, 'total_tasks': 1, 'completed_tasks': 1, 'individual_progress': {'Soumyadeep': 0}}",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.606690"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /timeline/",
+      "passed": true,
+      "evidence": "GET /timeline/?workspace_id=ws-41ed167b \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.622622"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /timeline/ filtered",
+      "passed": true,
+      "evidence": "GET /timeline/?workspace_id=ws-41ed167b&event_type=workspace_create \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.641763"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /analytics/wla",
+      "passed": true,
+      "evidence": "GET /analytics/wla?workspace_id=ws-41ed167b \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.660813"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "GET /analytics/heatmap",
+      "passed": true,
+      "evidence": "GET /analytics/heatmap?workspace_id=ws-41ed167b \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.698795"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "POST /ai/run",
+      "passed": true,
+      "evidence": "POST /ai/run?workspace_id=ws-41ed167b \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.717918"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "POST /ai/run returns status=completed",
+      "passed": true,
+      "evidence": "{\"status\":\"completed\",\"message\":\"Autonomous research run completed and shared to the workspace feed.",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.717918"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "POST /workspace/join valid",
+      "passed": true,
+      "evidence": "POST /workspace/join \u2192 HTTP 200",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.736063"
+    },
+    {
+      "phase": "CONTRACT",
+      "name": "POST /workspace/join missing \u2192 404",
+      "passed": true,
+      "evidence": "POST /workspace/join \u2192 HTTP 404",
+      "detail": "",
+      "ts": "2026-07-03T16:33:56.757188"
+    },
+    {
+      "phase": "CONCURRENCY",
+      "name": "50 concurrent task creates \u2014 no server errors",
+      "passed": true,
+      "evidence": "created=50 errors=0 elapsed=0.51s",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.269364"
+    },
+    {
+      "phase": "CONCURRENCY",
+      "name": "All concurrent task IDs are unique",
+      "passed": true,
+      "evidence": "total=50 unique=50",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.269364"
+    },
+    {
+      "phase": "CONCURRENCY",
+      "name": "Concurrent reads during writes \u2014 all reads 200",
+      "passed": true,
+      "evidence": "reads_ok=15/15  writes_ok=15/15",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.579776"
+    },
+    {
+      "phase": "CONCURRENCY",
+      "name": "Duplicate POST creates two distinct tasks (idempotency behavior)",
+      "passed": true,
+      "evidence": "id1=task-37d445c0 id2=task-fa3396ad",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.622304"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Auth bypass: No header -> 401",
+      "passed": true,
+      "evidence": "HTTP 401: {\"detail\":\"Missing Authorization header.\"}",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.641409"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Auth bypass: Empty bearer -> 401",
+      "passed": true,
+      "evidence": "HTTP 401: {\"detail\":\"Authentication failed: User profile not found.\"}",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.659164"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Auth bypass: SQL injection token -> 401",
+      "passed": true,
+      "evidence": "HTTP 401: {\"detail\":\"Malformed Authorization header.\"}",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.678812"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Auth bypass: JWT-like garbage -> 401",
+      "passed": true,
+      "evidence": "HTTP 401: {\"detail\":\"Authentication failed: User profile not found.\"}",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.697663"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Auth bypass: Very long token -> 401",
+      "passed": true,
+      "evidence": "HTTP 401: {\"detail\":\"Authentication failed: User profile not found.\"}",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.718063"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "BOLA: user-1 reads user-2 private workspace \u2192 403",
+      "passed": true,
+      "evidence": "HTTP 403: {\"detail\":\"Access denied: You are not a member of this workspace.\"}",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.756541"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "BOLA: user-1 creates task in user-2 workspace \u2192 403",
+      "passed": true,
+      "evidence": "HTTP 403: {\"detail\":\"Access denied: You are not a member of this workspace.\"}",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.776025"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "XSS: '<script>alert('XSS1')</script>' is escaped in storage",
+      "passed": true,
+      "evidence": "stored_value=&lt;script&gt;alert(&#x27;XSS1&#x27;)&lt;/script&gt;",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.795444"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "XSS: '<img src=x onerror=alert(1)>' is escaped in storage",
+      "passed": true,
+      "evidence": "stored_value=&lt;img src=x onerror=alert(1)&gt;",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.815309"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "XSS: 'javascript:alert(1)' is escaped in storage",
+      "passed": true,
+      "evidence": "stored_value=javascript:alert(1)",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.830711"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "XSS: '<svg/onload=alert(1)>' is escaped in storage",
+      "passed": true,
+      "evidence": "stored_value=&lt;svg/onload=alert(1)&gt;",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.850397"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "XSS: '';alert(1)//' is escaped in storage",
+      "passed": true,
+      "evidence": "stored_value=&#x27;;alert(1)//",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.899382"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Path traversal: /workspace/../../../etc/passwd \u2192 not 200 with file content",
+      "passed": true,
+      "evidence": "HTTP 404",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.915346"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Path traversal: /task/%2F%2F%2Fetc%2Fpasswd \u2192 not 200 with file content",
+      "passed": true,
+      "evidence": "HTTP 404",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.928489"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Path traversal: /workspace/%252e%252e%252f \u2192 not 200 with file content",
+      "passed": true,
+      "evidence": "HTTP 404",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.948481"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Verb tamper: PUT /member/ \u2192 not 200",
+      "passed": true,
+      "evidence": "HTTP 405",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.967523"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Verb tamper: DELETE /member/ \u2192 not 200",
+      "passed": true,
+      "evidence": "HTTP 405",
+      "detail": "",
+      "ts": "2026-07-03T16:33:57.983450"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Verb tamper: OPTIONS /member/ \u2192 not 200",
+      "passed": true,
+      "evidence": "HTTP 405",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.000855"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Verb tamper: TRACE /member/ \u2192 not 200",
+      "passed": true,
+      "evidence": "HTTP 405",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.019126"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Mass assignment: injected workspace_id not accepted",
+      "passed": true,
+      "evidence": "server assigned id=ws-1fc09a2a",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.039273"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "DoS: 1MB+ payload rejected \u2192 422",
+      "passed": true,
+      "evidence": "HTTP 422",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.091333"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Unicode payload accepted safely: \u3053\u3093\u306b\u3061\u306f\u4e16\u754c",
+      "passed": true,
+      "evidence": "HTTP 201",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.112025"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Unicode payload accepted safely: \u0645\u0631\u062d\u0628\u0627 \u0628\u0627\u0644\u0639\u0627\u0644\u0645",
+      "passed": true,
+      "evidence": "HTTP 201",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.131601"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Unicode payload accepted safely: \u0000\u0001\u001f",
+      "passed": true,
+      "evidence": "HTTP 201",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.152799"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Unicode payload accepted safely: \ud83d\ude00\ud83d\udd25\ud83d\udcaf\ud83d\ude00\ud83d\udd25\ud83d\udcaf\ud83d\ude00\ud83d\udd25\ud83d\udcaf\ud83d\ude00\ud83d\udd25\ud83d\udcaf\ud83d\ude00\ud83d\udd25\ud83d\udcaf\ud83d\ude00\ud83d\udd25\ud83d\udcaf\ud83d\ude00\ud83d\udd25",
+      "passed": true,
+      "evidence": "HTTP 422",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.186043"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Unicode payload accepted safely: \uffff\ufffe",
+      "passed": true,
+      "evidence": "HTTP 201",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.203837"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Empty body POST /task/ \u2192 422",
+      "passed": true,
+      "evidence": "HTTP 422: {\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"title\"],\"msg\":\"Field required\",\"input\":{}}]}",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.222608"
+    },
+    {
+      "phase": "PENTEST",
+      "name": "Null name POST /workspace/create \u2192 422",
+      "passed": true,
+      "evidence": "HTTP 422: {\"detail\":[{\"type\":\"string_type\",\"loc\":[\"body\",\"name\"],\"msg\":\"Input should be a valid string\",\"input",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.241698"
+    },
+    {
+      "phase": "CHAOS",
+      "name": "PATCH nonexistent task \u2192 404",
+      "passed": true,
+      "evidence": "HTTP 404: {\"detail\":\"Task with ID 'nonexistent-task-xyz' not found.\"}",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.260708"
+    },
+    {
+      "phase": "CHAOS",
+      "name": "Invalid context type \u2192 422",
+      "passed": false,
+      "evidence": "HTTP 201",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.277324"
+    },
+    {
+      "phase": "CHAOS",
+      "name": "Long (500 char) workspace name accepted",
+      "passed": true,
+      "evidence": "HTTP 422",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.296593"
+    },
+    {
+      "phase": "CHAOS",
+      "name": "Malformed JSON body \u2192 422",
+      "passed": true,
+      "evidence": "HTTP 422",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.315630"
+    },
+    {
+      "phase": "CHAOS",
+      "name": "Wrong content-type \u2192 422",
+      "passed": true,
+      "evidence": "HTTP 422",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.334138"
+    },
+    {
+      "phase": "CHAOS",
+      "name": "Concurrent reads on 5 fresh workspaces \u2014 all 200",
+      "passed": true,
+      "evidence": "statuses={200}",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.620773"
+    },
+    {
+      "phase": "CHAOS",
+      "name": "GET /task/ without workspace_id \u2192 422",
+      "passed": false,
+      "evidence": "HTTP 200: [{\"task_id\":\"task-1\",\"title\":\"Build FastAPI backend endpoints\",\"assignee\":\"user-1\",\"status\":\"in-prog",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.638067"
+    },
+    {
+      "phase": "CHAOS",
+      "name": "Extra unknown fields in payload \u2014 server ignores them",
+      "passed": true,
+      "evidence": "HTTP 201: Extra Fields WS",
+      "detail": "",
+      "ts": "2026-07-03T16:33:58.658110"
+    },
+    {
+      "phase": "DEPVULN",
+      "name": "pip-audit ran successfully",
+      "passed": true,
+      "evidence": "returncode=1 stdout= stderr=ERROR:pip_audit._virtual_env:internal pip failure:   Running command git clone --filter=blob:none --quiet https://github.com/Soumyadeep143/TeamOS.git 'C:\\Users\\dell\\AppData\\Local\\Temp\\tmp1916g11q\\src\\",
+      "detail": "",
+      "ts": "2026-07-03T16:34:59.907779"
+    },
+    {
+      "phase": "DEPVULN",
+      "name": "Zero known CVEs in dependencies",
+      "passed": true,
+      "evidence": "vulnerable_packages=0  raw=",
+      "detail": "",
+      "ts": "2026-07-03T16:34:59.907779"
+    },
+    {
+      "phase": "STATIC",
+      "name": "bandit ran successfully",
+      "passed": true,
+      "evidence": "returncode=1",
+      "detail": "",
+      "ts": "2026-07-03T16:35:01.440648"
+    },
+    {
+      "phase": "STATIC",
+      "name": "No HIGH severity findings",
+      "passed": true,
+      "evidence": "HIGH=0 MEDIUM=1 LOW=4",
+      "detail": "",
+      "ts": "2026-07-03T16:35:01.440648"
+    },
+    {
+      "phase": "STATIC",
+      "name": "Fewer than 5 MEDIUM findings",
+      "passed": true,
+      "evidence": "MEDIUM=1  findings: ['B104']",
+      "detail": "",
+      "ts": "2026-07-03T16:35:01.440648"
+    },
+    {
+      "phase": "STATIC",
+      "name": "bandit_report.json written",
+      "passed": true,
+      "evidence": "saved",
+      "detail": "",
+      "ts": "2026-07-03T16:35:01.443745"
+    },
+    {
+      "phase": "BENCHMARK",
+      "name": "GET / avg latency < 100ms",
+      "passed": true,
+      "evidence": "avg=21.7ms p95=44.3ms samples=20",
+      "detail": "",
+      "ts": "2026-07-03T16:35:01.878820"
+    },
+    {
+      "phase": "BENCHMARK",
+      "name": "GET /member/ avg latency < 100ms",
+      "passed": true,
+      "evidence": "avg=23.1ms p95=34.7ms samples=20",
+      "detail": "",
+      "ts": "2026-07-03T16:35:02.341147"
+    },
+    {
+      "phase": "BENCHMARK",
+      "name": "GET /task/?workspace_id=ws-41ed167b avg latency < 100ms",
+      "passed": true,
+      "evidence": "avg=24.3ms p95=61.8ms samples=20",
+      "detail": "",
+      "ts": "2026-07-03T16:35:02.827185"
+    },
+    {
+      "phase": "BENCHMARK",
+      "name": "GET /context/feed?workspace_id=ws-41ed167b avg latency < 100ms",
+      "passed": true,
+      "evidence": "avg=23.0ms p95=38.7ms samples=20",
+      "detail": "",
+      "ts": "2026-07-03T16:35:03.285624"
+    },
+    {
+      "phase": "BENCHMARK",
+      "name": "GET /analytics/wla?workspace_id=ws-41ed167b avg latency < 100ms",
+      "passed": true,
+      "evidence": "avg=22.7ms p95=39.3ms samples=20",
+      "detail": "",
+      "ts": "2026-07-03T16:35:03.740009"
+    },
+    {
+      "phase": "BENCHMARK",
+      "name": "GET /progress/?workspace_id=ws-41ed167b avg latency < 100ms",
+      "passed": true,
+      "evidence": "avg=22.1ms p95=34.5ms samples=20",
+      "detail": "",
+      "ts": "2026-07-03T16:35:04.182327"
+    }
+  ]
+}

@@ -1,8 +1,9 @@
 import logging
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 from typing import List
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
 from app.services.task_service import TaskService
+from app.core.auth import get_current_user, verify_workspace_access
 
 logger = logging.getLogger("teamos.api.tasks")
 logger.setLevel(logging.INFO)
@@ -11,13 +12,17 @@ router = APIRouter(prefix="/task", tags=["tasks"])
 task_service = TaskService()
 
 @router.get("/", response_model=List[TaskResponse])
-def list_tasks():
+def list_tasks(
+    workspace_id: str = Query(..., description="Workspace ID to scope the task list"),
+    current_user: str = Depends(get_current_user)
+):
     """
     Returns all tasks in the workspace.
     """
-    logger.info("Listing all tasks")
+    logger.info("Listing all tasks for workspace: %s", workspace_id)
+    verify_workspace_access(workspace_id, current_user)
     try:
-        return task_service.list_tasks()
+        return task_service.list_tasks(workspace_id)
     except Exception as e:
         logger.exception("Failed to retrieve tasks")
         raise HTTPException(
@@ -26,13 +31,18 @@ def list_tasks():
         )
 
 @router.post("/", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
-def create_task(task_in: TaskCreate):
+def create_task(
+    task_in: TaskCreate,
+    workspace_id: str = Query(..., description="Workspace ID to scope the task creation"),
+    current_user: str = Depends(get_current_user)
+):
     """
     Creates a new task.
     """
-    logger.info("Creating task: title=%s", task_in.title)
+    logger.info("Creating task: title=%s, workspace=%s", task_in.title, workspace_id)
+    verify_workspace_access(workspace_id, current_user)
     try:
-        task = task_service.create_task(task_in)
+        task = task_service.create_task(task_in, workspace_id)
         logger.info("Task created successfully: id=%s", task["task_id"])
         return task
     except Exception as e:
@@ -43,19 +53,28 @@ def create_task(task_in: TaskCreate):
         )
 
 @router.patch("/{task_id}", response_model=TaskResponse)
-def update_task(task_id: str, task_in: TaskUpdate):
+def update_task(
+    task_id: str,
+    task_in: TaskUpdate,
+    current_user: str = Depends(get_current_user)
+):
     """
     Updates progress or details of an existing task.
     """
     logger.info("Updating task: id=%s", task_id)
     try:
-        updated_task = task_service.update_task(task_id, task_in)
-        if not updated_task:
+        task = task_service.get_task(task_id)
+        if not task:
             logger.warning("Task not found for update: id=%s", task_id)
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Task with ID '{task_id}' not found."
             )
+            
+        ws_id = task.get("workspace_id", "demo-workspace-123")
+        verify_workspace_access(ws_id, current_user)
+        
+        updated_task = task_service.update_task(task_id, task_in)
         logger.info("Task updated successfully: id=%s", task_id)
         return updated_task
     except HTTPException:

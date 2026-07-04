@@ -16,6 +16,19 @@ class WorkspaceService:
             "projects": []
         }
         db.workspaces[workspace_id] = new_ws
+        
+        # Log event to timeline
+        try:
+            from app.services.timeline_service import TimelineService
+            TimelineService().log_event(
+                event_type="workspace_create",
+                message=f"created workspace: '{workspace_in.name}'",
+                user_id=owner_id,
+                details={"workspace_id": workspace_id}
+            )
+        except Exception:
+            pass
+            
         return new_ws
 
     def join_workspace(self, workspace_id: str, user_id: str) -> Optional[Dict[str, Any]]:
@@ -24,6 +37,19 @@ class WorkspaceService:
         ws = db.workspaces[workspace_id]
         if user_id not in ws["members"]:
             ws["members"].append(user_id)
+            
+            # Log event to timeline
+            try:
+                from app.services.timeline_service import TimelineService
+                TimelineService().log_event(
+                    event_type="member_join",
+                    message=f"joined the workspace",
+                    user_id=user_id,
+                    details={"workspace_id": workspace_id}
+                )
+            except Exception:
+                pass
+                
         return ws
 
     def get_workspace(self, workspace_id: str) -> Optional[Dict[str, Any]]:
