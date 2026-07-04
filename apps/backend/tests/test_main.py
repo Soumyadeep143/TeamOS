@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 from app.core.store import db
+from app.services.hydra_service import hydra_service
 
 client = TestClient(app)
 
@@ -14,6 +15,7 @@ def reset_store():
     db.contexts.clear()
     db.notifications.clear()
     db._init_demo_data()
+    hydra_service.reset()
 
 def test_health_check():
     response = client.get("/")
@@ -112,10 +114,12 @@ def test_websocket_broadcasts_task_created_and_progress():
 
 
 def test_duplicate_share_creates_and_reads_notification():
+    # Text overlaps heavily with the demo ctx-1 seed data (title + summary) so the
+    # local cosine-similarity fallback in hydra_service clears the 80% threshold.
     payload = {
         "type": "document",
         "title": "Browser Use Competitor Analysis",
-        "text_content": "Duplicate content of an existing shared document.",
+        "text_content": "Browser Use Competitor Analysis: GitHub repository for Browser Use agent framework.",
     }
     response = client.post("/context/share", json=payload)
     assert response.status_code == 201

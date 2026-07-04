@@ -1,40 +1,36 @@
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict
 from app.core.store import db
+from app.services.hydra_service import hydra_service
+
 
 class DuplicateService:
     def check_duplicate_document(self, title: str, text: str) -> Dict[str, Any]:
         """
-        Simulates vector embedding similarity checks against existing contexts (FR-20).
-        If similarity > 80%, flags it as a duplicate (FR-21) and provides merge choices (FR-22).
+        Vector embedding similarity check against existing shared context (FR-20),
+        backed by hydra_service. Flags similarity >= 80% as a duplicate (FR-21)
+        with merge choices (FR-22).
         """
-        # Simple similarity heuristic based on title intersection
-        cleaned_title = title.lower().strip()
-        
-        for ctx_id, ctx in db.contexts.items():
-            ctx_title = ctx["title"].lower().strip()
-            # Simple intersection check
-            words1 = set(cleaned_title.split())
-            words2 = set(ctx_title.split())
-            if not words1 or not words2:
-                continue
-                
-            intersection = words1.intersection(words2)
-            similarity = len(intersection) / max(len(words1), len(words2))
-            
-            # If similarity meets threshold
-            if similarity >= 0.6: # lower slightly for simpler heuristics in mock
-                sim_percent = int(similarity * 100)
-                return {
-                    "duplicate_found": True,
-                    "similarity_score": sim_percent,
-                    "matched_context_id": ctx_id,
-                    "matched_title": ctx["title"],
-                    "created_by": ctx["created_by"],
-                    "suggested_actions": ["Merge", "Ignore", "Replace", "Create New Version"]
-                }
-                
+        self._sync_existing_contexts()
+
+        match = hydra_service.find_similar(title, text, threshold=0.8)
+        if not match:
+            return {
+                "duplicate_found": False,
+                "similarity_score": 0,
+                "suggested_actions": [],
+            }
+
+        matched_context = db.contexts.get(match["document_id"], {})
         return {
-            "duplicate_found": False,
-            "similarity_score": 0,
-            "suggested_actions": []
+            "duplicate_found": True,
+            "similarity_score": match["similarity_score"],
+            "matched_context_id": match["document_id"],
+            "matched_title": match["title"],
+            "created_by": matched_context.get("created_by", "a teammate"),
+            "suggested_actions": ["Merge", "Ignore", "Replace", "Create New Version"],
         }
+
+    def _sync_existing_contexts(self) -> None:
+        """Keeps the vector index current with contexts created outside share_context (e.g. demo seed data)."""
+        for ctx_id, ctx in db.contexts.items():
+            hydra_service.index_document(ctx_id, ctx["title"], ctx.get("summary") or ctx.get("title", ""))

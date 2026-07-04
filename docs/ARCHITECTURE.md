@@ -162,7 +162,9 @@ erDiagram
 ## 7. Key Design Decisions & Tradeoffs
 
 - **In-Memory Store Scaffold**: We utilized a centralized thread-safe in-memory memory store (`MemoryStore`) for this MVP iteration. *Tradeoff*: No persistent storage across backend app restarts, but enables immediate frontend interaction and test suite run without local DB environment blockers during demos.
-- **WebSocket Broadcast Room Scoping**: Real-time broadcasts are isolated by Workspace IDs. *Tradeoff*: Added small memory footprint in Redis, but guarantees strict security isolation—preventing workspaces from receiving leak data from other teams.
+- **WebSocket Broadcast Room Scoping**: The `/ws/{workspace_id}` endpoint and `ConnectionManager` (`apps/backend/app/websocket/`) group connections into per-workspace rooms, but since `MemoryStore` entities aren't yet tagged with a `workspace_id`, callers currently use `broadcast_all()` (fan-out to every connected room) rather than the room-scoped `broadcast()`. *Tradeoff*: Correct for the single-demo-workspace MVP, but not yet workspace-isolated — tag entities with `workspace_id` before adding a second real workspace.
+- **In-Process Pub/Sub, Not Redis Yet**: The WebSocket layer is real (FastAPI native `WebSocket` + an in-memory `ConnectionManager`), but broadcasts only reach clients connected to the same backend process — Redis Pub/Sub is not wired in yet. *Tradeoff*: Fine for a single-instance hackathon deploy; required before running multiple backend replicas.
+- **HydraDB Local Fallback**: `apps/backend/app/services/hydra_service.py` implements the vector-similarity and knowledge-graph interface locally (cosine similarity over bag-of-words vectors, in-memory graph) since no HydraDB credentials/SDK are configured yet. *Tradeoff*: Duplicate detection only catches near-identical wording, not true semantic similarity, until the real HydraDB client is wired in behind the same interface.
 - **Plasmo Extension Structure**: Used Plasmo's built-in framework. *Tradeoff*: Strict folder naming guidelines, but takes care of build configurations for MV3 service workers out-of-the-box.
 
 ## 8. Known Limitations & Scaling Considerations
