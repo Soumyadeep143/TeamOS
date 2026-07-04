@@ -1,5 +1,7 @@
 declare const chrome: any;
 
+console.log("TeamOS content script loaded!");
+
 function attachTeamOSButton() {
   let root = document.getElementById("teamos-root");
   if (!root && document.body) {
@@ -34,12 +36,16 @@ chrome.runtime.onMessage.addListener(
     sender: any,
     sendResponse: (response?: any) => void
   ) => {
+    console.log("TeamOS content script received message:", message);
     if (message?.type === "TOGGLE_SIDEBAR") {
+      console.log("Toggling sidebar status...");
       const root = attachTeamOSButton();
       if (root) {
         if (root.style.right === "0px") {
+          console.log("Hiding sidebar...");
           root.style.right = "-400px";
         } else {
+          console.log("Showing sidebar...");
           root.style.right = "0px";
         }
       }

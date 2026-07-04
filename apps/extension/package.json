@@ -1,8 +1,17 @@
 {
     "name": "@teamos/extension",
+    "displayName": "TeamOS Browser Extension",
     "private": true,
     "version": "0.1.0",
     "type": "module",
+    "manifest": {
+        "permissions": ["storage", "tabs", "scripting", "contextMenus", "notifications", "sidePanel"],
+        "host_permissions": ["<all_urls>"],
+        "web_accessible_resources": [{
+            "resources": ["sidepanel.html"],
+            "matches": ["<all_urls>"]
+        }]
+    },
     "scripts": {
         "dev": "plasmo dev",
         "build": "plasmo build",

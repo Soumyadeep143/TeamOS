@@ -63,3 +63,18 @@ def test_create_task_and_progress_recalculation():
     # The progress should be calculated across all tasks in db
     assert "sprint_progress" in progress_data
     assert "individual_progress" in progress_data
+
+def test_update_member_presence():
+    payload = {
+        "status": "busy",
+        "current_activity": "Coding the sidebar UI",
+        "progress": 85
+    }
+    response = client.patch("/member/user-1", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["user_id"] == "user-1"
+    assert data["status"] == "busy"
+    assert data["current_activity"] == "Coding the sidebar UI"
+    assert data["progress"] == 85
+

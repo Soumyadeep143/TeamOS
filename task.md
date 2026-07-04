@@ -33,30 +33,30 @@
   - [x] Basic text semantic similarity mock comparator
 
 ## 3. Chrome Extension Development (`apps/extension`)
-- [ ] Implement browser interaction listeners in background service worker
-  - [ ] Broadcaster for active tab, activity, and focus state (FR-5 to FR-6)
-- [ ] Build Right-Click context menu listener (FR-10 to FR-11)
-  - [ ] Text selection capture and sharing
-  - [ ] Image capture and metadata sharing
-- [ ] Build Sidebar Panel User Interface (Zustand + React)
-  - [ ] Workspace switcher and joining view
-  - [ ] Real-time chronological Context Feed display
-  - [ ] Workspace member presence cards
-  - [ ] Live Task Checklist management widget
-  - [ ] Natural Language AI Search chat panel
-  - [ ] Notifications overlay
+- [x] Implement browser interaction listeners in background service worker
+  - [x] Broadcaster for active tab, activity, and focus state (FR-5 to FR-6)
+- [x] Build Right-Click context menu listener (FR-10 to FR-11)
+  - [x] Text selection capture and sharing
+  - [x] Image capture and metadata sharing
+- [x] Build Sidebar Panel User Interface (Zustand + React)
+  - [x] Workspace switcher and joining view
+  - [x] Real-time chronological Context Feed display
+  - [x] Workspace member presence cards
+  - [x] Live Task Checklist management widget
+  - [x] Natural Language AI Search chat panel
+  - [x] Notifications overlay
 
 ## 4. Dashboard Web Application (`apps/dashboard`)
-- [ ] Develop Dashboard Core Layout (React + Vite)
-- [ ] Workspace Command Center
-  - [ ] Aggregated sprint progress trackers and metrics cards (FR-33 to FR-34)
-  - [ ] Team Activity Heatmap (presence status tracker) (FR-8)
-  - [ ] Timeline event playback controller (FR-38)
-- [ ] AI Research Panel
-  - [ ] Trigger Browser Use AI agents and view progress logs
-  - [ ] Competitor analysis matrices and price monitoring updates
-- [ ] Knowledge Graph Visual Explorer (FR-25 to FR-28)
-  - [ ] Interactive graph rendering (users, docs, entities, companies)
+- [x] Develop Dashboard Core Layout (React + Vite)
+- [x] Workspace Command Center
+  - [x] Aggregated sprint progress trackers and metrics cards (FR-33 to FR-34)
+  - [x] Team Activity Heatmap (presence status tracker) (FR-8)
+  - [x] Timeline event playback controller (FR-38)
+- [x] AI Research Panel
+  - [x] Trigger Browser Use AI agents and view progress logs
+  - [x] Competitor analysis matrices and price monitoring updates
+- [x] Knowledge Graph Visual Explorer (FR-25 to FR-28)
+  - [x] Interactive graph rendering (users, docs, entities, companies)
 
 ## 5. Persistence & Event Streaming (Relational & Cache Migration)
 - [ ] PostgreSQL Database Schema Setup (SQLAlchemy + Alembic)
