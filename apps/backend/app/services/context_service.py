@@ -18,9 +18,10 @@ class ContextService:
             "url": context_in.url,
             "summary": summary,
             "created_by": user_id,
-            "created_at": datetime.now()
+            "created_at": datetime.now(),
+            "metadata": context_in.metadata or {}
         }
-        
+
         db.contexts[context_id] = new_ctx
         return new_ctx
 
@@ -50,3 +51,21 @@ class ContextService:
         # Return feed sorted by date descending (newest first)
         all_items = list(db.contexts.values())
         return sorted(all_items, key=lambda x: x["created_at"], reverse=True)
+
+    def search_context(self, query: str) -> List[Dict[str, Any]]:
+        """
+        Keyword search over shared context (FR-29, FR-31). This is a local
+        substring match today; swap for hydra_service semantic search once
+        real HydraDB credentials are available.
+        """
+        cleaned_query = query.lower().strip()
+        if not cleaned_query:
+            return []
+
+        matches = []
+        for ctx in db.contexts.values():
+            haystack = " ".join(filter(None, [ctx.get("title"), ctx.get("summary"), ctx.get("url")])).lower()
+            if cleaned_query in haystack:
+                matches.append(ctx)
+
+        return sorted(matches, key=lambda x: x["created_at"], reverse=True)

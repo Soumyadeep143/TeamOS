@@ -2,5 +2,9 @@
     "name": "@teamos/sdk",
     "private": true,
     "version": "0.1.0",
-    "main": "src/index.ts"
+    "main": "src/index.ts",
+    "dependencies": {
+        "@teamos/config": "workspace:*",
+        "@teamos/types": "workspace:*"
+    }
 }

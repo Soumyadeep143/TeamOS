@@ -1,6 +1,6 @@
-declare const chrome: any;
+import { shareContext, updateMemberPresence } from "@teamos/sdk";
 
-const API_BASE_URL = "http://localhost:8000";
+declare const chrome: any;
 
 // Set up Context Menus on install
 chrome.runtime.onInstalled.addListener(() => {
@@ -26,25 +26,16 @@ async function updatePresence(url: string, title: string) {
   if (!url || url.startsWith("chrome://") || url.startsWith("chrome-extension://")) {
     return;
   }
-  
+
   // Format current activity message
   const domain = new URL(url).hostname;
   const currentActivity = `Active on ${domain} (Researching: ${title.slice(0, 30)})`;
 
   try {
-    const response = await fetch(`${API_BASE_URL}/member/user-1`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        current_activity: currentActivity,
-        status: "online"
-      })
+    await updateMemberPresence("user-1", {
+      current_activity: currentActivity,
+      status: "online"
     });
-    if (!response.ok) {
-      console.error("Failed to update presence:", response.statusText);
-    }
   } catch (error) {
     console.error("Error updating presence:", error);
   }
@@ -82,6 +73,18 @@ function debounceUpdate(url: string, title: string) {
   }, 3000); // 3-second debounce
 }
 
+// Captures a screenshot of the currently visible tab (FR-9, FR-61). Fails
+// silently on restricted pages (chrome://, PDF viewer, etc) since
+// captureVisibleTab throws there — sharing should still proceed without one.
+async function captureScreenshot(windowId: number): Promise<string | undefined> {
+  try {
+    return await chrome.tabs.captureVisibleTab(windowId, { format: "jpeg", quality: 70 });
+  } catch (error) {
+    console.warn("Screenshot capture unavailable for this page:", error);
+    return undefined;
+  }
+}
+
 // Handle Context Menu clicks
 chrome.contextMenus.onClicked.addListener(async (info: any, tab: any) => {
   if (!tab?.url) return;
@@ -89,32 +92,23 @@ chrome.contextMenus.onClicked.addListener(async (info: any, tab: any) => {
   const type = info.menuItemId === "share-selection" ? "highlight" : "page";
   const title = tab.title || "Shared Page";
   const textContent = info.selectionText || "";
+  const screenshot = await captureScreenshot(tab.windowId);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/context/share`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        type: type,
-        title: title,
-        url: tab.url,
-        text_content: textContent
-      })
+    await shareContext({
+      type,
+      title,
+      url: tab.url,
+      text_content: textContent,
+      metadata: screenshot ? { screenshot } : undefined
     });
 
-    if (response.ok) {
-      // Show desktop notification
-      chrome.notifications.create({
-        type: "basic",
-        iconUrl: chrome.runtime.getURL("assets/icon.png"),
-        title: "TeamOS Shared!",
-        message: `Successfully shared ${type === "highlight" ? "highlighted text" : "webpage"} to the team.`
-      });
-    } else {
-      console.error("Failed to share context:", response.statusText);
-    }
+    chrome.notifications.create({
+      type: "basic",
+      iconUrl: chrome.runtime.getURL("assets/icon.png"),
+      title: "TeamOS Shared!",
+      message: `Successfully shared ${type === "highlight" ? "highlighted text" : "webpage"} to the team.`
+    });
   } catch (error) {
     console.error("Error sharing context menu:", error);
   }

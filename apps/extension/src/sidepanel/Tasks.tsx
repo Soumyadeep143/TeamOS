@@ -1,20 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { createTask, listTasks, updateTask } from "@teamos/sdk";
+import type { Task } from "@teamos/types";
+import { useWorkspaceSocket } from "../hooks/useWorkspaceSocket";
 
-const API_BASE_URL = "http://localhost:8000";
-
-interface ChecklistItem {
-  title: string;
-  completed: boolean;
-}
-
-interface Task {
-  task_id: string;
-  title: string;
-  assignee?: string;
-  status: string; // todo, in-progress, completed
-  progress: number;
-  checklist: ChecklistItem[];
-}
+const TASK_EVENTS = new Set(["TASK_CREATED", "TASK_UPDATED", "TASK_COMPLETED", "PROGRESS_UPDATED"]);
 
 export function Tasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -22,47 +11,38 @@ export function Tasks() {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
 
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/task/`);
-      if (response.ok) {
-        const data = await response.json();
-        setTasks(data);
-      }
+      const data = await listTasks();
+      setTasks(data);
     } catch (error) {
       console.error("Error fetching tasks:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchTasks();
-    const interval = setInterval(fetchTasks, 4000); // poll tasks every 4 seconds
+    // Safety-net poll in case the WebSocket drops (FR-67 auto-reconnect).
+    const interval = setInterval(fetchTasks, 15000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchTasks]);
+
+  useWorkspaceSocket((message) => {
+    if (TASK_EVENTS.has(message.event)) {
+      fetchTasks();
+    }
+  });
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/task/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          title: newTaskTitle,
-          assignee: "user-1",
-          checklist: []
-        })
-      });
-
-      if (response.ok) {
-        setNewTaskTitle("");
-        fetchTasks();
-      }
+      await createTask({ title: newTaskTitle, assignee: "user-1", checklist: [] });
+      setNewTaskTitle("");
+      fetchTasks();
     } catch (error) {
       console.error("Error creating task:", error);
     }
@@ -101,22 +81,9 @@ export function Tasks() {
         })
       );
 
-      // Send to backend
-      const response = await fetch(`${API_BASE_URL}/task/${taskId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          checklist: updatedChecklist
-        })
-      });
-
-      if (response.ok) {
-        const updatedTask = await response.json();
-        // Sync with actual backend values
-        setTasks((prev) => prev.map((t) => (t.task_id === taskId ? updatedTask : t)));
-      }
+      const updatedTask = await updateTask(taskId, { checklist: updatedChecklist });
+      // Sync with actual backend values
+      setTasks((prev) => prev.map((t) => (t.task_id === taskId ? updatedTask : t)));
     } catch (error) {
       console.error("Error updating task:", error);
       fetchTasks(); // rollback on error
@@ -131,19 +98,8 @@ export function Tasks() {
     const updatedChecklist = [...task.checklist, { title: itemTitle, completed: false }];
 
     try {
-      const response = await fetch(`${API_BASE_URL}/task/${taskId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          checklist: updatedChecklist
-        })
-      });
-
-      if (response.ok) {
-        fetchTasks();
-      }
+      await updateTask(taskId, { checklist: updatedChecklist });
+      fetchTasks();
     } catch (error) {
       console.error("Error adding checklist item:", error);
     }

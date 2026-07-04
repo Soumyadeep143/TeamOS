@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from typing import List, Optional
 from app.schemas.context import ContextShare, ContextResponse
 from app.services.context_service import ContextService
@@ -84,4 +84,19 @@ def get_context_feed():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while loading context feed: {str(e)}"
+        )
+
+@router.get("/search", response_model=List[ContextResponse])
+def search_context(q: str = Query(..., min_length=1, description="Search query text")):
+    """
+    Keyword search over shared context titles, summaries, and URLs (FR-29, FR-31).
+    """
+    logger.info("Searching context feed: query=%s", q)
+    try:
+        return context_service.search_context(q)
+    except Exception as e:
+        logger.exception("Failed to search context feed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred while searching context: {str(e)}"
         )

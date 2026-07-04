@@ -1,42 +1,39 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { getContextFeed, shareContext } from "@teamos/sdk";
+import type { SharedContext } from "@teamos/types";
+import { useWorkspaceSocket } from "../hooks/useWorkspaceSocket";
 
-const API_BASE_URL = "http://localhost:8000";
-
-interface FeedItem {
-  context_id: string;
-  type: string; // page, document, highlight
-  title: string;
-  url?: string;
-  summary?: string;
-  created_by: string;
-  created_at: string;
-}
+const FEED_EVENTS = new Set(["PAGE_SHARED", "DOCUMENT_SHARED", "HIGHLIGHT_SHARED", "NEW_CONTEXT", "SUMMARY_READY"]);
 
 export function Feed() {
-  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
+  const [feedItems, setFeedItems] = useState<SharedContext[]>([]);
   const [loading, setLoading] = useState(true);
   const [shareText, setShareText] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchFeed = async () => {
+  const fetchFeed = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/context/feed`);
-      if (response.ok) {
-        const data = await response.json();
-        setFeedItems(data);
-      }
+      const data = await getContextFeed();
+      setFeedItems(data);
     } catch (error) {
       console.error("Error fetching feed:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchFeed();
-    const interval = setInterval(fetchFeed, 5000); // poll feed every 5 seconds
+    // Safety-net poll in case the WebSocket drops (FR-67 auto-reconnect).
+    const interval = setInterval(fetchFeed, 20000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchFeed]);
+
+  useWorkspaceSocket((message) => {
+    if (FEED_EVENTS.has(message.event)) {
+      fetchFeed();
+    }
+  });
 
   const handleShare = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +41,7 @@ export function Feed() {
 
     setSubmitting(true);
     // Detect if input is a URL
-    let type = "highlight";
+    let type: "page" | "highlight" = "highlight";
     let title = "Shared Note";
     let url = "";
 
@@ -59,23 +56,14 @@ export function Feed() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/context/share`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          type: type,
-          title: title,
-          url: url || undefined,
-          text_content: shareText
-        })
+      await shareContext({
+        type,
+        title,
+        url: url || undefined,
+        text_content: shareText
       });
-
-      if (response.ok) {
-        setShareText("");
-        fetchFeed();
-      }
+      setShareText("");
+      fetchFeed();
     } catch (error) {
       console.error("Error sharing to feed:", error);
     } finally {
@@ -92,10 +80,10 @@ export function Feed() {
 
       if (diffMins < 1) return "just now";
       if (diffMins < 60) return `${diffMins}m ago`;
-      
+
       const diffHours = Math.floor(diffMins / 60);
       if (diffHours < 24) return `${diffHours}h ago`;
-      
+
       return past.toLocaleDateString();
     } catch {
       return "some time ago";
@@ -156,6 +144,7 @@ export function Feed() {
             document: "📄"
           };
           const currentIcon = typeIcons[item.type] || "📌";
+          const screenshot = item.metadata?.screenshot as string | undefined;
 
           return (
             <div
@@ -188,6 +177,14 @@ export function Feed() {
                   {formatRelativeTime(item.created_at)}
                 </span>
               </div>
+
+              {screenshot && (
+                <img
+                  src={screenshot}
+                  alt={`Screenshot of ${item.title}`}
+                  style={{ width: "100%", borderRadius: "6px", border: "1px solid #334155" }}
+                />
+              )}
 
               {/* AI generated summary */}
               {item.summary && (

@@ -17,6 +17,7 @@ class ContextResponse(BaseModel):
     summary: Optional[str] = None
     created_by: str
     created_at: datetime
+    metadata: Optional[dict] = None
 
     class Config:
         from_attributes = True

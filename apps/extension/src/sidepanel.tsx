@@ -3,14 +3,31 @@ import { Team } from "./sidepanel/Team";
 import { Feed } from "./sidepanel/Feed";
 import { Tasks } from "./sidepanel/Tasks";
 import { AI } from "./sidepanel/AI";
+import { Dashboard } from "./sidepanel/Dashboard";
+import { Knowledge } from "./sidepanel/Knowledge";
+import { Search } from "./sidepanel/Search";
+import { Timeline } from "./sidepanel/Timeline";
 
-type Tab = "presence" | "feed" | "tasks" | "ai";
+type Tab = "dashboard" | "presence" | "feed" | "tasks" | "ai" | "knowledge" | "search" | "timeline";
+
+const TABS: { id: Tab; label: string; icon: string }[] = [
+  { id: "dashboard", label: "Home", icon: "🏠" },
+  { id: "presence", label: "Team", icon: "👥" },
+  { id: "feed", label: "Feed", icon: "🌐" },
+  { id: "tasks", label: "Tasks", icon: "📋" },
+  { id: "ai", label: "AI Agent", icon: "🤖" },
+  { id: "knowledge", label: "Graph", icon: "🧠" },
+  { id: "search", label: "Search", icon: "🔎" },
+  { id: "timeline", label: "Timeline", icon: "🕒" },
+];
 
 function Sidepanel() {
-  const [activeTab, setActiveTab] = useState<Tab>("presence");
+  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case "dashboard":
+        return <Dashboard />;
       case "presence":
         return <Team />;
       case "feed":
@@ -19,8 +36,14 @@ function Sidepanel() {
         return <Tasks />;
       case "ai":
         return <AI />;
+      case "knowledge":
+        return <Knowledge />;
+      case "search":
+        return <Search />;
+      case "timeline":
+        return <Timeline />;
       default:
-        return <Team />;
+        return <Dashboard />;
     }
   };
 
@@ -73,84 +96,32 @@ function Sidepanel() {
           borderTop: "1px solid #1e293b",
           backgroundColor: "#0f172a",
           padding: "6px 0",
-          justifyContent: "space-around"
+          overflowX: "auto"
         }}>
-        <button
-          onClick={() => setActiveTab("presence")}
-          style={{
-            flex: 1,
-            background: "none",
-            border: "none",
-            color: activeTab === "presence" ? "#38bdf8" : "#64748b",
-            cursor: "pointer",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "4px",
-            fontSize: "11px",
-            fontWeight: activeTab === "presence" ? 600 : 500,
-            transition: "color 0.2s"
-          }}>
-          <span style={{ fontSize: "18px" }}>👥</span>
-          Team
-        </button>
-        <button
-          onClick={() => setActiveTab("feed")}
-          style={{
-            flex: 1,
-            background: "none",
-            border: "none",
-            color: activeTab === "feed" ? "#38bdf8" : "#64748b",
-            cursor: "pointer",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "4px",
-            fontSize: "11px",
-            fontWeight: activeTab === "feed" ? 600 : 500,
-            transition: "color 0.2s"
-          }}>
-          <span style={{ fontSize: "18px" }}>🌐</span>
-          Feed
-        </button>
-        <button
-          onClick={() => setActiveTab("tasks")}
-          style={{
-            flex: 1,
-            background: "none",
-            border: "none",
-            color: activeTab === "tasks" ? "#38bdf8" : "#64748b",
-            cursor: "pointer",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "4px",
-            fontSize: "11px",
-            fontWeight: activeTab === "tasks" ? 600 : 500,
-            transition: "color 0.2s"
-          }}>
-          <span style={{ fontSize: "18px" }}>📋</span>
-          Tasks
-        </button>
-        <button
-          onClick={() => setActiveTab("ai")}
-          style={{
-            flex: 1,
-            background: "none",
-            border: "none",
-            color: activeTab === "ai" ? "#38bdf8" : "#64748b",
-            cursor: "pointer",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "4px",
-            fontSize: "11px",
-            fontWeight: activeTab === "ai" ? 600 : 500,
-            transition: "color 0.2s"
-          }}>
-          <span style={{ fontSize: "18px" }}>🤖</span>
-          AI Agent
-        </button>
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              flex: "1 0 auto",
+              minWidth: "56px",
+              background: "none",
+              border: "none",
+              color: activeTab === tab.id ? "#38bdf8" : "#64748b",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "3px",
+              fontSize: "10px",
+              fontWeight: activeTab === tab.id ? 600 : 500,
+              transition: "color 0.2s",
+              padding: "2px 4px"
+            }}>
+            <span style={{ fontSize: "16px" }}>{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
       </div>
     </div>
   );

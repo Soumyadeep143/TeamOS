@@ -157,3 +157,22 @@ def test_knowledge_graph_endpoint_returns_nodes_and_edges():
     assert "edges" in data
     assert len(data["nodes"]) > 0
 
+
+def test_context_search_matches_title():
+    response = client.get("/context/search", params={"q": "Browser Use"})
+    assert response.status_code == 200
+    results = response.json()
+    assert any("Browser Use" in r["title"] for r in results)
+
+
+def test_context_share_persists_metadata():
+    payload = {
+        "type": "page",
+        "title": "Screenshot Test Page",
+        "url": "https://example.com",
+        "metadata": {"screenshot": "data:image/png;base64,abc123"},
+    }
+    response = client.post("/context/share", json=payload)
+    assert response.status_code == 201
+    assert response.json()["metadata"] == {"screenshot": "data:image/png;base64,abc123"}
+

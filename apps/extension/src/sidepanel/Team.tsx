@@ -1,65 +1,50 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { listMembers, updateMemberPresence } from "@teamos/sdk";
+import type { Member } from "@teamos/types";
+import { useWorkspaceSocket } from "../hooks/useWorkspaceSocket";
 
-const API_BASE_URL = "http://localhost:8000";
-
-interface Availability {
-  day: string;
-  start_time: string;
-  end_time: string;
-}
-
-interface Member {
-  user_id: string;
-  display_name: string;
-  status: string; // online, busy, idle, offline
-  current_activity?: string;
-  availability: Availability[];
-  progress: number;
-}
+const PRESENCE_EVENTS = new Set(["USER_ACTIVE", "USER_IDLE", "USER_BUSY", "USER_LEFT"]);
 
 export function Team() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [focusMode, setFocusMode] = useState(false);
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/member/`);
-      if (response.ok) {
-        const data = await response.json();
-        setMembers(data);
-        // Set focus mode local state based on user-1 status
-        const currentUser = data.find((m: Member) => m.user_id === "user-1");
-        if (currentUser) {
-          setFocusMode(currentUser.status === "busy");
-        }
+      const data = await listMembers();
+      setMembers(data);
+      const currentUser = data.find((m) => m.user_id === "user-1");
+      if (currentUser) {
+        setFocusMode(currentUser.status === "busy");
       }
     } catch (error) {
       console.error("Error fetching members:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchMembers();
-    const interval = setInterval(fetchMembers, 4000); // poll every 4 seconds
+    // Safety-net poll in case the WebSocket drops (FR-67 auto-reconnect).
+    const interval = setInterval(fetchMembers, 15000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchMembers]);
+
+  useWorkspaceSocket((message) => {
+    if (PRESENCE_EVENTS.has(message.event)) {
+      fetchMembers();
+    }
+  });
 
   const toggleFocusMode = async () => {
     const newStatus = focusMode ? "online" : "busy";
     setFocusMode(!focusMode);
     try {
-      await fetch(`${API_BASE_URL}/member/user-1`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          status: newStatus,
-          current_activity: newStatus === "busy" ? "Focus Mode enabled" : "Working in browser"
-        })
+      await updateMemberPresence("user-1", {
+        status: newStatus,
+        current_activity: newStatus === "busy" ? "Focus Mode enabled" : "Working in browser"
       });
       fetchMembers();
     } catch (error) {
