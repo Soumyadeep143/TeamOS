@@ -3,21 +3,14 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from app.core.store import db
 from app.schemas.context import ContextShare
+from app.services.ai_engine_client import ai_engine_client
 
 class ContextService:
     def share_context(self, context_in: ContextShare, user_id: str = "user-1") -> Dict[str, Any]:
         context_id = f"ctx-{uuid.uuid4().hex[:8]}"
-        
-        # Simple AI Summary generation logic simulator
-        # In a real environment, this would call the ai-engine summarizer agent
-        summary = None
-        if context_in.type == "page":
-            summary = f"Summary of '{context_in.title}': The user visited {context_in.url} and captured this page."
-        elif context_in.type == "highlight":
-            summary = f"Shared highlight from page: '{context_in.text_content[:60]}...'"
-        elif context_in.type == "document":
-            summary = f"Uploaded document: {context_in.title} containing extracted content."
-            
+
+        summary = self._generate_summary(context_in)
+
         new_ctx = {
             "context_id": context_id,
             "type": context_in.type,
@@ -30,6 +23,25 @@ class ContextService:
         
         db.contexts[context_id] = new_ctx
         return new_ctx
+
+    def _generate_summary(self, context_in: ContextShare) -> Optional[str]:
+        """
+        Summarizes shared page/highlight/document text via the ai-engine
+        Summarizer (real LLM call when a key is configured, extractive
+        fallback otherwise). Falls back to a plain description when no
+        text content was captured at all (e.g. a bare URL share).
+        """
+        if context_in.text_content:
+            result = ai_engine_client.summarize(context_in.text_content)
+            return result["summary"]
+
+        if context_in.type == "page":
+            return f"Shared page '{context_in.title}' ({context_in.url})."
+        if context_in.type == "highlight":
+            return f"Shared a highlight from '{context_in.title}'."
+        if context_in.type == "document":
+            return f"Uploaded document '{context_in.title}'."
+        return None
 
     def get_context(self, context_id: str) -> Optional[Dict[str, Any]]:
         return db.contexts.get(context_id)

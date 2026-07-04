@@ -3,12 +3,15 @@ from fastapi import APIRouter, HTTPException, status
 from typing import List
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
 from app.services.task_service import TaskService
+from app.services.progress_service import ProgressService
+from app.websocket import manager
 
 logger = logging.getLogger("teamos.api.tasks")
 logger.setLevel(logging.INFO)
 
 router = APIRouter(prefix="/task", tags=["tasks"])
 task_service = TaskService()
+progress_service = ProgressService()
 
 @router.get("/", response_model=List[TaskResponse])
 def list_tasks():
@@ -26,7 +29,7 @@ def list_tasks():
         )
 
 @router.post("/", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
-def create_task(task_in: TaskCreate):
+async def create_task(task_in: TaskCreate):
     """
     Creates a new task.
     """
@@ -34,6 +37,8 @@ def create_task(task_in: TaskCreate):
     try:
         task = task_service.create_task(task_in)
         logger.info("Task created successfully: id=%s", task["task_id"])
+        await manager.broadcast_all("TASK_CREATED", task)
+        await manager.broadcast_all("PROGRESS_UPDATED", progress_service.get_progress_summary())
         return task
     except Exception as e:
         logger.exception("Failed to create task")
@@ -43,7 +48,7 @@ def create_task(task_in: TaskCreate):
         )
 
 @router.patch("/{task_id}", response_model=TaskResponse)
-def update_task(task_id: str, task_in: TaskUpdate):
+async def update_task(task_id: str, task_in: TaskUpdate):
     """
     Updates progress or details of an existing task.
     """
@@ -57,6 +62,12 @@ def update_task(task_id: str, task_in: TaskUpdate):
                 detail=f"Task with ID '{task_id}' not found."
             )
         logger.info("Task updated successfully: id=%s", task_id)
+
+        await manager.broadcast_all("TASK_UPDATED", updated_task)
+        if updated_task["status"] == "completed":
+            await manager.broadcast_all("TASK_COMPLETED", updated_task)
+        await manager.broadcast_all("PROGRESS_UPDATED", progress_service.get_progress_summary())
+
         return updated_task
     except HTTPException:
         raise

@@ -12,6 +12,7 @@ def reset_store():
     db.members.clear()
     db.tasks.clear()
     db.contexts.clear()
+    db.notifications.clear()
     db._init_demo_data()
 
 def test_health_check():
@@ -77,4 +78,82 @@ def test_update_member_presence():
     assert data["status"] == "busy"
     assert data["current_activity"] == "Coding the sidebar UI"
     assert data["progress"] == 85
+
+
+def test_websocket_broadcasts_member_presence_update():
+    with client.websocket_connect("/ws/demo-workspace-123") as websocket:
+        response = client.patch(
+            "/member/user-1",
+            json={"status": "busy", "current_activity": "Deep work", "progress": 60},
+        )
+        assert response.status_code == 200
+
+        message = websocket.receive_json()
+        assert message["event"] == "USER_BUSY"
+        assert message["data"]["user_id"] == "user-1"
+        assert message["data"]["status"] == "busy"
+
+
+def test_websocket_broadcasts_task_created_and_progress():
+    with client.websocket_connect("/ws/demo-workspace-123") as websocket:
+        response = client.post(
+            "/task/",
+            json={"title": "Write docs", "assignee": "user-1", "checklist": []},
+        )
+        assert response.status_code == 201
+
+        created = websocket.receive_json()
+        assert created["event"] == "TASK_CREATED"
+        assert created["data"]["title"] == "Write docs"
+
+        progress = websocket.receive_json()
+        assert progress["event"] == "PROGRESS_UPDATED"
+        assert "sprint_progress" in progress["data"]
+
+
+def test_duplicate_share_creates_and_reads_notification():
+    payload = {
+        "type": "document",
+        "title": "Browser Use Competitor Analysis",
+        "text_content": "Duplicate content of an existing shared document.",
+    }
+    response = client.post("/context/share", json=payload)
+    assert response.status_code == 201
+
+    notif_response = client.get("/notification/")
+    assert notif_response.status_code == 200
+    notifications = notif_response.json()["notifications"]
+    duplicate_notifs = [n for n in notifications if n["type"] == "duplicate_found"]
+    assert len(duplicate_notifs) == 1
+
+    notif_id = duplicate_notifs[0]["notification_id"]
+    read_response = client.post(f"/notification/{notif_id}/read")
+    assert read_response.status_code == 200
+    assert read_response.json()["read"] is True
+
+
+def test_ai_run_generates_summary_and_broadcasts_completion():
+    with client.websocket_connect("/ws/demo-workspace-123") as websocket:
+        response = client.post(
+            "/ai/run",
+            json={"prompt": "Summarize the current sprint status for the team."},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "completed"
+        assert "summary" in data
+
+        started = websocket.receive_json()
+        assert started["event"] == "AI_STARTED"
+        completed = websocket.receive_json()
+        assert completed["event"] == "AI_COMPLETED"
+
+
+def test_knowledge_graph_endpoint_returns_nodes_and_edges():
+    response = client.post("/ai/knowledge-graph")
+    assert response.status_code == 200
+    data = response.json()
+    assert "nodes" in data
+    assert "edges" in data
+    assert len(data["nodes"]) > 0
 

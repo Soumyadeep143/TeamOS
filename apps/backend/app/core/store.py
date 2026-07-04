@@ -9,7 +9,8 @@ class MemoryStore:
         self.members: Dict[str, Dict[str, Any]] = {}
         self.tasks: Dict[str, Dict[str, Any]] = {}
         self.contexts: Dict[str, Dict[str, Any]] = {}
-        
+        self.notifications: Dict[str, Dict[str, Any]] = {}
+
         # Initialize with some default demo data so the app isn't empty out-of-the-box
         self._init_demo_data()
 

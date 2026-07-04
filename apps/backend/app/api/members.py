@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, status
 from typing import List
 from app.schemas.member import MemberResponse, MemberUpdate
 from app.core.store import db
+from app.websocket import manager
 
 logger = logging.getLogger("teamos.api.members")
 logger.setLevel(logging.INFO)
@@ -24,8 +25,16 @@ def list_members():
             detail=f"An error occurred while listing members: {str(e)}"
         )
 
+PRESENCE_EVENT_BY_STATUS = {
+    "online": "USER_ACTIVE",
+    "idle": "USER_IDLE",
+    "busy": "USER_BUSY",
+    "offline": "USER_LEFT",
+}
+
+
 @router.patch("/{user_id}", response_model=MemberResponse)
-def update_member_presence(user_id: str, member_in: MemberUpdate):
+async def update_member_presence(user_id: str, member_in: MemberUpdate):
     """
     Updates the presence state, availability, status, or progress of a workspace member.
     """
@@ -53,7 +62,10 @@ def update_member_presence(user_id: str, member_in: MemberUpdate):
             member["availability"] = [{"day": item.day, "start_time": item.start_time, "end_time": item.end_time} for item in member_in.availability]
         if member_in.progress is not None:
             member["progress"] = member_in.progress
-            
+
+        event = PRESENCE_EVENT_BY_STATUS.get(member["status"], "USER_ACTIVE")
+        await manager.broadcast_all(event, member)
+
         return member
     except Exception as e:
         logger.exception("Failed to update presence for user ID: %s", user_id)
